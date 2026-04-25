@@ -1,13 +1,13 @@
 # GitHub & NPM Sourcing Guide
-### Find engineers where they actually hang out — not where they pretend to.
+### Find engineers where they actually hang out. Not where they pretend to.
 
 ---
 
 LinkedIn is a highlight reel. GitHub is the game tape.
 
-While everyone else is cold messaging "rockstar developers" on LinkedIn, you could be pulling real contribution data, commit history, and public emails from the platform engineers actually care about. This guide gives you a CLI tool that does exactly that — point it at any GitHub repo or NPM package and get a ranked list of top contributors, enriched with recruiter-relevant signals, in about 30 seconds.
+While everyone else is cold messaging "rockstar developers" on LinkedIn, you could be pulling real contribution data, commit history, and public emails from the platform engineers actually care about. This guide gives you a CLI tool that does exactly that. Point it at any GitHub repo or NPM package and get a ranked list of top contributors, enriched with recruiter-relevant signals, in about 30 seconds.
 
-No subscriptions. No browser extensions. No begging a engineer to help you find engineers.
+No subscriptions. No browser extensions. No begging an engineer to help you find engineers.
 
 ---
 
@@ -30,7 +30,7 @@ That's it. One command and you get this:
 ──────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-Fake names, real format. When you run it against an actual repo, you'll see real contributor data. Bots automatically filtered out. *(Sorry, dependabot. It's not you, it's us.)*
+Fake names, real format. When you run it against an actual repo, you'll see real contributor data. Bots are automatically filtered out. *(Sorry, dependabot. It's not you, it's me.)*
 
 ---
 
@@ -51,9 +51,9 @@ If it prints a number, you're good. If it says "command not found", go install i
 This is how the tool authenticates with GitHub's API. It's free, takes 2 minutes, and you only have to do it once.
 
 1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)
-2. Click **Generate new token → Generate new token (classic)**
+2. Click **Generate new token > Generate new token (classic)**
 3. Give it a name like `sourcer-tool`
-4. Leave all permission boxes unchecked — we only read public data
+4. Leave all permission boxes unchecked. We only read public data.
 5. Scroll down and click **Generate token**
 6. **Copy it immediately.** GitHub will never show it again. Yes, really.
 
@@ -66,8 +66,8 @@ This is how the tool authenticates with GitHub's API. It's free, takes 2 minutes
 git clone https://github.com/yourusername/github-npm-sourcing-guide.git
 cd github-npm-sourcing-guide
 
-# No npm install needed — sourcer.js has zero external dependencies
-# (we know, we're just as surprised as you are)
+# No npm install needed. sourcer.js has zero external dependencies.
+# (We know, we're just as surprised as you are.)
 ```
 
 ---
@@ -81,19 +81,19 @@ GH_TOKEN=<your_token> node sourcer.js <owner/repo or npm-package> [--top N] [--c
 ### Examples
 
 ```bash
-# Basic — top 10 contributors to a repo
+# Basic - top 10 contributors to a repo
 GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
 
-# Go deeper — top 25 contributors
+# Go deeper - top 25 contributors
 GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 25
 
-# NPM package — auto-resolves to its GitHub repo
+# NPM package - auto-resolves to its GitHub repo
 GH_TOKEN=ghp_xxxx node sourcer.js lodash
 
 # Scoped NPM package
 GH_TOKEN=ghp_xxxx node sourcer.js @remix-run/router
 
-# Export to CSV — opens in Excel or Google Sheets
+# Export to CSV - opens in Excel or Google Sheets
 GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express --csv
 
 # The whole shebang
@@ -106,14 +106,14 @@ The `--csv` flag saves a `contributors-<repo>.csv` file right in your current fo
 
 ## How the Signal Score Works
 
-Every contributor gets a score from 0–100 based on recruiter-relevant signals. It's not a judgment of their worth as a human being — it's just a prioritization tool so you know who to reach out to first.
+Every contributor gets a score from 0 to 100 based on recruiter-relevant signals. It's not a judgment of their worth as a human being. It's a prioritization tool so you know who to reach out to first.
 
 | Signal | Points | Why it matters |
 |---|---|---|
-| Contributions to this repo | up to 40 | They're not just on GitHub — they're active in *this* codebase |
+| Contributions to this repo | up to 40 | They're active in *this* codebase, not just on GitHub in general |
 | Followers | up to 20 | Community recognition. Peers vote with follows. |
 | Public repos | up to 15 | Breadth of work beyond their day job |
-| Public email listed | 10 | Low-hanging fruit — skip the guessing game |
+| Public email listed | 10 | Low-hanging fruit. Skip the guessing game. |
 | Marked as hireable | 10 | They literally said they're open. Don't overthink it. |
 | Website linked | 5 | They have a presence beyond GitHub |
 | Twitter/X linked | 5 | Active in the community conversation |
@@ -122,7 +122,7 @@ High score = reach out first. Low score = still worth a look, just lower on the 
 
 ---
 
-## The Bookmarklet — For Quick Profile Checks
+## The Bookmarklet: For Quick Profile Checks
 
 Sometimes you just want to peek at someone's PR history without running a command. Drop this into your bookmarks bar and click it on any GitHub profile:
 
@@ -140,12 +140,12 @@ javascript:(function() {
 ```
 
 **To install:**
-1. Right-click your bookmarks bar → **Add bookmark**
-2. Name it something like `→ Their PRs`
+1. Right-click your bookmarks bar and select **Add bookmark**
+2. Name it something like `Their PRs`
 3. Paste the script above as the URL
 4. Go to any GitHub profile and click it
 
-Shows all PRs — open, closed, and merged. Because closed PRs still tell a story.
+Shows all PRs: open, closed, and merged. Because closed PRs still tell a story.
 
 ---
 
@@ -153,7 +153,7 @@ Shows all PRs — open, closed, and merged. Because closed PRs still tell a stor
 
 The tool is only as useful as the repos you point it at. A few ways to find good ones:
 
-**Ask your hiring team.** During intake, ask: *"Which libraries or tools does your team use or respect?"* Those repos are magnets for exactly the kind of people you're looking for.
+**Ask your hiring team.** During intake, ask: *"Which libraries or tools does your team use or respect?"* Those repos attract exactly the kind of people you're looking for.
 
 **Check strong candidates you've already found.** See which repos they contribute to, then run the tool against those. You'll find their neighbors.
 
@@ -167,15 +167,15 @@ The tool is only as useful as the repos you point it at. A few ways to find good
 
 Once you have your list, here's what to actually look at:
 
-**The contribution graph** — Steady green for years > a massive spike last month. Consistency is a career signal.
+**The contribution graph.** Steady green for years beats a massive spike last month. Consistency is a career signal.
 
-**Original repos vs. forks** — Forks only count if they've been meaningfully extended. Anyone can fork a repo and do nothing with it.
+**Original repos vs. forks.** Forks only count if they've been meaningfully extended. Anyone can fork a repo and do nothing with it.
 
-**The README** — Seriously, read it. A well-written README is a proxy for how someone communicates. If they can explain their own project clearly, they can probably explain their work in a standup.
+**The README.** Seriously, read it. A well-written README is a proxy for how someone communicates. If they can explain their own project clearly, they can probably explain their work in a standup.
 
-**The issues tab** — How someone handles bug reports and feature requests from strangers on the internet is incredibly revealing. Look for patience, clarity, and follow-through.
+**The issues tab.** How someone handles bug reports and feature requests from strangers on the internet is incredibly revealing. Look for patience, clarity, and follow-through.
 
-**Stars received** — Community validation that no resume bullet point can replicate.
+**Stars received.** Community validation that no resume bullet point can replicate.
 
 ---
 
@@ -183,32 +183,32 @@ Once you have your list, here's what to actually look at:
 
 Beyond what the tool already surfaces:
 
-- **Commit metadata** — author emails sometimes appear in commit history
-- **NPM package pages** — package authors occasionally list contact info
-- **Cross-platform** — try `"username" site:linkedin.com` or `"handle" TypeScript developer`
-- **Their own website** — if they listed one, start there
+- **Commit metadata.** Author emails sometimes appear in commit history.
+- **NPM package pages.** Package authors occasionally list contact details.
+- **Cross-platform search.** Try `"username" site:linkedin.com` or `"handle" TypeScript developer`.
+- **Their own website.** If they listed one, start there.
 
 ---
 
 ## Troubleshooting
 
-**`401 Unauthorized`** — Your token is wrong or expired. Generate a new one.
+**`401 Unauthorized`** Your token is wrong or expired. Generate a new one.
 
-**`403 Forbidden`** — You've hit GitHub's rate limit (5,000 requests/hour on authenticated calls — you'd have to really go for it). Wait an hour and try again.
+**`403 Forbidden`** You've hit GitHub's rate limit (5,000 requests/hour on authenticated calls). Wait an hour and try again.
 
-**`404 Not Found`** — Double-check the repo name. It's case-sensitive. `Expressjs/Express` won't work, `expressjs/express` will.
+**`404 Not Found`** Double-check the repo name. It's case-sensitive. `Expressjs/Express` won't work but `expressjs/express` will.
 
-**NPM package not resolving** — Some packages don't link a GitHub repo in their manifest. Pass the GitHub repo directly instead: `owner/repo`.
+**NPM package not resolving.** Some packages don't link a GitHub repo in their manifest. Pass the GitHub repo directly instead: `owner/repo`.
 
-**Output looks misaligned** — The table is formatted for a standard terminal width. Try making your terminal window wider.
+**Output looks misaligned.** The table is formatted for a standard terminal width. Try making your terminal window wider.
 
 ---
 
 ## Related Guides
 
-- [GitHub Recruiting Playbook](../github-recruiting-playbook) — A structured methodology for identifying and evaluating top contributors in high-signal repos
-- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) — Finding crypto-native and technical talent where they actually talk about what they're building
+- [GitHub Recruiting Playbook](../github-recruiting-playbook) - A structured methodology for identifying and evaluating top contributors in high-signal repos
+- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) - Finding crypto-native and technical talent where they actually talk about what they're building
 
 ---
 
-*Built for recruiters who want to source like engineers think — systematically, signal-first, and without begging anyone for a LinkedIn InMail credit.*
+*Built for recruiters who want to source like engineers think: systematically, signal-first, and without begging anyone for a LinkedIn InMail credit.*
