@@ -3,44 +3,115 @@
 
 ---
 
-Most engineers aren't on LinkedIn — or if they are, they're not active. But they *are* shipping code every day. This guide walks through how to source directly from GitHub and NPM using a handful of lightweight tools, so you can find candidates based on what they've actually built, not just what they've written on a resume.
+Most engineers aren't active on LinkedIn — but they *are* shipping code every day. This guide gives you a CLI tool to pull top contributors from any public GitHub repo or NPM package, enrich their profiles with recruiter-relevant signals, and export the results to a spreadsheet. No third-party services, no subscriptions — just Node.js and a GitHub token.
+
+---
+
+## What It Does
+
+Point it at any GitHub repo or NPM package and it returns a ranked table of top contributors with:
+
+- Contribution count to that repo
+- Follower count and public repo count
+- Account age (a proxy for career seniority)
+- Location and public email (if listed)
+- Website and Twitter/X handle (if listed)
+- Whether they've marked themselves as **hireable**
+- A weighted **signal score** to help prioritize outreach
+
+Optionally exports everything to a `.csv` for your ATS or spreadsheet.
 
 ---
 
 ## Before You Start
 
-You'll need three things:
+**Node.js v18+**
+Download and install from [nodejs.org](https://nodejs.org).
 
-**Node.js**
-Download and install from [nodejs.org](https://nodejs.org). This is what lets you run the CLI commands in this guide.
-
-**A GitHub Account**
-Sign up at [github.com](https://github.com) if you don't have one.
-
-**A GitHub Personal Access Token**
-This authenticates your CLI requests. Generate one at:
-[github.com/settings/tokens](https://github.com/settings/tokens)
+**A GitHub Personal Access Token (classic)**
+Generate one at [github.com/settings/tokens](https://github.com/settings/tokens)
 
 > `Settings → Developer Settings → Personal access tokens → Tokens (classic) → Generate new token`
 
-You don't need to grant any special permissions — this guide only reads public data.
+No special permissions needed — this tool only reads public data.
 
 ---
 
-## Part 1 — Browser Bookmarklets
+## Setup
 
-Bookmarklets are small scripts saved as browser bookmarks. Click them while browsing a GitHub profile to instantly surface useful information.
+```bash
+# Clone or download this repo, then navigate into it
+cd github-npm-sourcing-guide
 
-### Pull Request History
+# No npm install needed — sourcer.js uses only Node.js built-ins
+```
 
-This bookmarklet takes you directly to a user's full pull request history. It's one of the fastest ways to assess how someone contributes to a codebase — not just what they've built alone, but how they collaborate.
+---
+
+## Usage
+
+```bash
+GH_TOKEN=<your_token> node sourcer.js <owner/repo or npm-package> [--top N] [--csv]
+```
+
+### Examples
+
+```bash
+# Top 10 contributors to a GitHub repo (default)
+GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
+
+# Top 20 contributors to an NPM package (auto-resolves to its GitHub repo)
+GH_TOKEN=ghp_xxxx node sourcer.js lodash --top 20
+
+# Scoped NPM package, export results to CSV
+GH_TOKEN=ghp_xxxx node sourcer.js @remix-run/router --csv
+
+# Both flags together
+GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 15 --csv
+```
+
+### Sample Output
+
+```
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+#    Username             Name                   PRs    Follow   Repos  Age      Location           Email                      Score
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+1    tjholowaychuk        TJ Holowaychuk         368    24021    198    15.2y    Victoria, BC       tj@vision-media.ca         100
+2    dougwilson           Douglas Wilson         312    1893     42     13.7y    —                  —                          62
+3    jonchurch            Jon Church             187    234      18     8.1y     New York, NY       jon@example.com            54
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Score = weighted signal (contributions, followers, repos, public email, hireable status)
+  View full profiles at: https://github.com/<username>
+```
+
+---
+
+## How the Signal Score Works
+
+The score (0–100) is a weighted combination of recruiter-relevant signals. It's not a judgment of quality — it's a prioritization aid for outreach.
+
+| Signal | Max Points | Why it matters |
+|---|---|---|
+| Contributions to this repo | 40 | Direct relevance to the codebase |
+| Followers | 20 | Community recognition |
+| Public repos | 15 | Breadth of work |
+| Public email listed | 10 | Easy to reach |
+| Marked as hireable | 10 | Self-signaled interest |
+| Website linked | 5 | Professional presence |
+| Twitter/X linked | 5 | Active in community |
+
+---
+
+## Browser Bookmarklet — Pull Request History
+
+For quick one-off profile checks while browsing GitHub, this bookmarklet takes you straight to a user's full PR history. Save it to your bookmarks bar and click it on any GitHub profile page.
 
 ```javascript
 javascript:(function() {
   const match = window.location.href.match(/github\.com\/([^/?#]+)/);
   const username = match?.[1];
   const excluded = ['search', 'pulls', 'issues', 'explore', 'topics'];
-
   if (username && !excluded.includes(username)) {
     window.location.href = `https://github.com/pulls?q=is%3Apr+author%3A${encodeURIComponent(username)}+archived%3Afalse`;
   } else {
@@ -50,152 +121,65 @@ javascript:(function() {
 ```
 
 **To install:**
-1. Right-click your browser bookmarks bar → **Add bookmark** (or paste directly)
-2. Set the name to something like `GitHub → PRs`
-3. Paste the full script above as the URL
+1. Right-click your bookmarks bar → **Add bookmark**
+2. Name it `GitHub → PRs`
+3. Paste the script above as the URL
 4. Navigate to any GitHub profile and click it
 
-> **What changed:** Removed the `is:closed` filter so you see *all* PRs — open, closed, and merged — giving a fuller picture of someone's contribution history. Also added a more robust exclusion list to avoid false matches on GitHub nav pages.
+> Shows all PRs — open, closed, and merged — giving a fuller picture than closed-only filters.
 
 ---
 
-## Part 2 — CLI Tools
+## Finding the Right Repos to Target
 
-These commands run in your terminal and return structured data about GitHub profiles and repositories.
+The tool is only as good as the repos you point it at. A few ways to find high-signal targets:
 
-### Profile Analysis
-
-Pulls a detailed contribution summary for any public GitHub user:
-
-```bash
-GH_TOKEN=<your_token> npx github-stats-cli <username>
-```
-
-**Sample output:**
-
-```json
-{
-  "followers": 214,
-  "accountAge": "2009-05-13",
-  "starsReceived": 630,
-  "privateContributions": 341,
-  "totalCommits": 22252,
-  "pullRequests": 4690,
-  "codeReviews": 9345,
-  "issuesOpened": 1171,
-  "totalContributions": 37458
-}
-```
-
-**Reading the output:**
-
-| Field | What it signals |
-|---|---|
-| `starsReceived` | Community recognition — others found their work valuable |
-| `codeReviews` | Collaboration depth, not just solo output |
-| `privateContributions` | Active in professional/private repos — likely currently employed |
-| `accountAge` + `totalCommits` | Career trajectory and sustained engagement over time |
-| `pullRequests` | How much they contribute to others' codebases |
+- **Ask your hiring team** — which libraries or tools does the engineering team use or respect?
+- **Check strong candidates** — which repos do they contribute to? Those repos are magnets for similar talent.
+- **GitHub topic search** — [github.com/topics/react](https://github.com/topics/react), `topic:nodejs`, `topic:web3`, etc.
+- **Follow dependencies** — look at what your product depends on, then find who builds it
 
 ---
 
-### Contributor Discovery by Repo or Package
+## Evaluating Profiles
 
-Surfaces the top contributors to any GitHub repository or NPM package. Useful for building a targeted pipeline around a specific tech stack or library.
+Once you have your list, use these signals to prioritize:
 
-```bash
-GH_TOKEN=<your_token> npx github-package-contributors <repo-or-package>,<repo-or-package>
-```
+**Activity & Consistency**
+- Sustained contribution graph — years, not a recent burst
+- Last commit or update within the past 3–6 months
+- Original repos weighted over forks (forks only count if meaningfully extended)
 
-**Example — targeting contributors to two Node.js packages:**
+**Quality Indicators**
+- Stars received on personal repos — peer validation
+- Contributions to well-known open-source projects
+- Clean, well-documented READMEs — signals communication skills
 
-```bash
-GH_TOKEN=<your_token> npx github-package-contributors @remix-run/router,expressjs/express
-```
-
-**Sample output:**
-
-```json
-[
-  {
-    "githubLink": "https://github.com/mjackson",
-    "contributions": 312,
-    "email": "michael@example.com",
-    "repo": "remix-run/router",
-    "packageName": "@remix-run/router"
-  }
-]
-```
-
-> 💡 **Sourcing tip:** Ask your hiring manager which libraries or tools their team uses or respects. Run this command against those repos and you'll have a warm, pre-qualified list of candidates in minutes — people who are already doing the work.
+**Collaboration Signals**
+- Review their issue and PR participation:
+  ```
+  https://github.com/issues?q=is%3Aissue+author%3A<USERNAME>
+  ```
+- Constructive, clear comments indicate strong communication
+- Code review activity shows they think beyond their own work
 
 ---
 
-## Part 3 — Profile Evaluation
+## Finding Contact Information
 
-Once you've found someone, use this framework to decide whether they're worth reaching out to. You don't need every box checked — look for a strong signal overall.
+Beyond what the tool surfaces automatically:
 
-### Technical Fit
-- Core languages match the role (JavaScript, TypeScript, Node.js, Python, etc.)
-- Repos reflect real problem-solving, not just tutorial projects
-- Specialization signals present where relevant (Web3, infrastructure, APIs, mobile)
-
-### Activity & Consistency
-- Contribution graph shows sustained activity — look for months or years, not a recent burst
-- Last commit or repo update within the past 3–6 months
-- Mix of original repos and meaningful forks (forks only count if they've actually been extended)
-
-### Quality Indicators
-- Stars on personal repos — community validation
-- Contributions to respected open-source projects
-- Clean documentation — a well-written README signals communication skills as much as technical ones
-
-### Collaboration Signals
-Review their issues and PR participation:
-```
-https://github.com/issues?q=is%3Aissue+author%3A<USERNAME>
-```
-- Are their comments constructive and clear?
-- Do they follow up on feedback?
-- Do others engage positively with their contributions?
-
----
-
-## Part 4 — Finding Contact Information
-
-GitHub profiles often contain more than just code. Here's where to look:
-
-- **Profile bio and links** — personal sites, LinkedIn, X/Twitter
-- **Commit metadata** — author emails sometimes surface in commit history
+- **Commit metadata** — author emails sometimes appear in commit history
 - **NPM package pages** — authors occasionally list contact details
-- **Cross-platform search** — try `"username" site:linkedin.com` or `"handle" JavaScript engineer`
-
----
-
-## Things Worth Knowing
-
-**Start with the repo, not the person.**
-Identify a high-signal repository first, then surface its top contributors. You'll find candidates you'd never reach through keyword searches alone.
-
-**Forks reveal intent.**
-What someone has forked tells you what they're learning or planning to build. It's a window into their interests beyond their current job.
-
-**Stars are peer validation.**
-A developer with hundreds of stars on a personal project has earned credibility from the community — that means more than any self-reported skill.
-
-**Read the issues tab.**
-How someone responds to bug reports and feature requests says a lot about their communication style, patience, and professionalism. It's often more telling than the code itself.
-
-**Check the README before anything else.**
-A well-structured README is a proxy for how someone thinks and communicates. If they can explain their own project clearly, they can probably explain their work to a team.
+- **Cross-platform search** — `"username" site:linkedin.com` or `"handle" JavaScript engineer`
 
 ---
 
 ## Related Guides
 
-- [GitHub Recruiting Playbook](../github-recruiting-playbook) — Structured methodology for targeting top contributors in high-signal repositories
-- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) — Finding and engaging technical talent in crypto and Web3 communities
+- [GitHub Recruiting Playbook](../github-recruiting-playbook) — Structured methodology for targeting contributors in high-signal repos
+- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) — Finding and engaging technical talent on X
 
 ---
 
-*These guides are maintained as living documents. If something's out of date or you've found a better approach, contributions are welcome.*
+*No npm install required. No external dependencies. Just Node.js and a GitHub token.*
