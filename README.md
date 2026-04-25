@@ -309,7 +309,7 @@ Both `repofinder.js` and `recruit.js` automate this, but good inputs make better
 ## Related Guides
 
 - [GitHub Sourcing Playbook](https://github.com/gabesparks/github-sourcing-playbook) - The step-by-step methodology that pairs with these tools
-- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) - Finding technical talent where they talk about what they're building
+- [Twitter/X Sourcing Playbook](https://github.com/gabesparks/twitter-x-sourcing-playbook) - Finding technical talent where they talk about what they're building
 
 ---
 
