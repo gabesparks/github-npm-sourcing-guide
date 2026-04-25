@@ -1,5 +1,5 @@
 # GitHub & NPM Sourcing Guide
-### Find engineers where they actually hang out — not where they pretend to.
+### Find engineers where they actually hang out - not where they pretend to.
 
 ---
 
