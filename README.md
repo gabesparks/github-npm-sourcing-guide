@@ -1,36 +1,41 @@
-# GitHub & NPM Sourcing Guide
+# GitHub & NPM Sourcing Toolkit
 ### Find engineers where they actually hang out. Not where they pretend to.
 
 ---
 
 LinkedIn is a highlight reel. GitHub is the game tape.
 
-While everyone else is cold messaging "rockstar developers" on LinkedIn, you could be pulling real contribution data, commit history, and public emails from the platform engineers actually care about. This guide gives you a CLI tool that does exactly that. Point it at any GitHub repo or NPM package and get a ranked list of top contributors, enriched with recruiter-relevant signals, in about 30 seconds.
+While everyone else is cold messaging "rockstar developers" on LinkedIn, you could be pulling real contribution data, commit history, and public emails from the platform engineers actually care about. This toolkit gives you two CLI tools that work together: one to find top contributors from any repo or NPM package, and one to deeply evaluate any profile before you reach out.
 
 No subscriptions. No browser extensions. No begging an engineer to help you find engineers.
 
 ---
 
-## What It Does
+## The Tools
+
+### `sourcer.js` - Find Top Contributors
+Point it at any GitHub repo or NPM package and get a ranked, enriched list of top contributors in about 30 seconds. Bots automatically filtered out.
 
 ```bash
-GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
+GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express --top 15 --csv
 ```
 
-That's it. One command and you get this:
+### `profiler.js` - Deep Profile Evaluation
+Take a shortlist from `sourcer.js` and run each username through a detailed five-category scorecard: profile completeness, activity, code quality, documentation, and collaboration depth.
 
-```
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-#    Username             Name                   PRs    Follow   Repos  Age      Location           Email                      Score
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-1    jsmith-dev           Jane Smith             3881   51671    296    17.6y    —                  —                          75
-2    mikecoder99          Mike Tran              1232   3734     31     17.1y    —                  mike@example.com           85
-3    a_builds             Alex Rivera             84    2391     60     15.2y    Austin, TX         alex@example.com           73
-4    devcarlos            Carlos Mendes           70    987      308    17.0y    —                  —                          42
-──────────────────────────────────────────────────────────────────────────────────────────────────────
+```bash
+GH_TOKEN=ghp_xxxx node profiler.js sindresorhus
 ```
 
-Fake names, real format. When you run it against an actual repo, you'll see real contributor data. Bots are automatically filtered out. *(Sorry, dependabot. It's not you, it's me.)*
+### The Workflow
+
+```
+1. Find a high-signal repo (ask your hiring team or use GitHub topics)
+2. Run sourcer.js to pull the top contributors
+3. Review the signal scores and pick your top candidates
+4. Run profiler.js on each one for a full evaluation
+5. Reach out with a personalized message
+```
 
 ---
 
@@ -48,11 +53,11 @@ node --version
 If it prints a number, you're good. If it says "command not found", go install it.
 
 **2. A GitHub Personal Access Token**
-This is how the tool authenticates with GitHub's API. It's free, takes 2 minutes, and you only have to do it once.
+This is how both tools authenticate with GitHub's API. It's free, takes 2 minutes, and one token works for everything.
 
 1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)
 2. Click **Generate new token > Generate new token (classic)**
-3. Give it a name like `sourcer-tool`
+3. Give it a name like `sourcing-toolkit`
 4. Leave all permission boxes unchecked. We only read public data.
 5. Scroll down and click **Generate token**
 6. **Copy it immediately.** GitHub will never show it again. Yes, really.
@@ -63,16 +68,18 @@ This is how the tool authenticates with GitHub's API. It's free, takes 2 minutes
 
 ```bash
 # Clone this repo
-git clone https://github.com/yourusername/github-npm-sourcing-guide.git
+git clone https://github.com/gabesparks/github-npm-sourcing-guide.git
 cd github-npm-sourcing-guide
 
-# No npm install needed. sourcer.js has zero external dependencies.
+# No npm install needed. Both tools have zero external dependencies.
 # (We know, we're just as surprised as you are.)
 ```
 
 ---
 
-## Usage
+## sourcer.js
+
+### Usage
 
 ```bash
 GH_TOKEN=<your_token> node sourcer.js <owner/repo or npm-package> [--top N] [--csv]
@@ -81,10 +88,10 @@ GH_TOKEN=<your_token> node sourcer.js <owner/repo or npm-package> [--top N] [--c
 ### Examples
 
 ```bash
-# Basic - top 10 contributors to a repo
+# Top 10 contributors to a GitHub repo (default)
 GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
 
-# Go deeper - top 25 contributors
+# Top 25 contributors
 GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 25
 
 # NPM package - auto-resolves to its GitHub repo
@@ -100,29 +107,128 @@ GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express --csv
 GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 20 --csv
 ```
 
-The `--csv` flag saves a `contributors-<repo>.csv` file right in your current folder. Great for dropping into your ATS, sharing with a hiring manager, or just feeling organized.
+### Sample Output
 
----
+```
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+#    Username             Name                   PRs    Follow   Repos  Age      Location           Email                      Score
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+1    jsmith-dev           Jane Smith             3881   51671    296    17.6y    —                  —                          75
+2    mikecoder99          Mike Tran              1232   3734     31     17.1y    —                  mike@example.com           85
+3    a_builds             Alex Rivera             84    2391     60     15.2y    Austin, TX         alex@example.com           73
+4    devcarlos            Carlos Mendes           70    987      308    17.0y    —                  —                          42
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+```
 
-## How the Signal Score Works
+Fake names, real format. Bots are automatically filtered out. *(Sorry, dependabot. It's not you, it's us.)*
 
-Every contributor gets a score from 0 to 100 based on recruiter-relevant signals. It's not a judgment of their worth as a human being. It's a prioritization tool so you know who to reach out to first.
+The `--csv` flag saves a `contributors-<repo>.csv` file in your current folder. Great for dropping into your ATS or sharing with a hiring manager.
+
+### How the Signal Score Works
+
+Every contributor gets a score from 0 to 100. It's a prioritization tool, not a judgment.
 
 | Signal | Points | Why it matters |
 |---|---|---|
-| Contributions to this repo | up to 40 | They're active in *this* codebase, not just on GitHub in general |
+| Contributions to this repo | up to 40 | Active in *this* codebase, not just GitHub in general |
 | Followers | up to 20 | Community recognition. Peers vote with follows. |
 | Public repos | up to 15 | Breadth of work beyond their day job |
 | Public email listed | 10 | Low-hanging fruit. Skip the guessing game. |
 | Marked as hireable | 10 | They literally said they're open. Don't overthink it. |
-| Website linked | 5 | They have a presence beyond GitHub |
+| Website linked | 5 | Presence beyond GitHub |
 | Twitter/X linked | 5 | Active in the community conversation |
 
 High score = reach out first. Low score = still worth a look, just lower on the list.
 
 ---
 
-## The Bookmarklet: For Quick Profile Checks
+## profiler.js
+
+### Usage
+
+```bash
+GH_TOKEN=<your_token> node profiler.js <github-username> [--json]
+```
+
+### Examples
+
+```bash
+# Full recruiter scorecard
+GH_TOKEN=ghp_xxxx node profiler.js sindresorhus
+
+# Raw JSON output (useful for piping into other tools)
+GH_TOKEN=ghp_xxxx node profiler.js sindresorhus --json
+```
+
+### What It Evaluates
+
+`profiler.js` scores each profile across five categories:
+
+**Profile Completeness (up to 100pts)**
+Real name, photo, bio, location, public email, website, Twitter, hireable status. Tells you how easy this person is to contact and verify.
+
+**Activity and Consistency (up to 100pts)**
+Account age, public repo count, followers, days since last active, and variety of activity types. Consistent activity over years beats a recent burst every time.
+
+**Code Quality Signals (up to 100pts)**
+Total stars on original repos, language diversity, repo descriptions, topic tags, original vs. fork ratio, and recent maintenance. Tells you if they're building real things or just collecting forks.
+
+**README and Documentation (up to 100pts)**
+Evaluates top repos for descriptions, topics, homepage links, and community reception. A well-documented repo signals communication skills as much as technical ability.
+
+**Collaboration Depth (up to 100pts)**
+PR reviews, pull requests submitted, issue participation, contributions to external repos, and community standing. Shows whether they work well with others, not just alone.
+
+### Sample Output
+
+```
+════════════════════════════════════════════════════════════
+  GitHub Profile Report: @sindresorhus
+  Sindre Sorhus
+  "Full-Time Open-Sourcerer. Focused on Swift and JavaScript."
+════════════════════════════════════════════════════════════
+
+  Profile Completeness
+  ████████████████░░░░ 80/100 (B)
+  Well-rounded profile. Easy to contact and verify.
+
+  ✅  Real name listed
+  ✅  Custom profile photo
+  ✅  Bio filled in
+  ❌  Location listed
+  ✅  Public email listed (sindresorhus@gmail.com)
+  ✅  Website or portfolio linked (https://sindresorhus.com/apps)
+  ✅  Twitter/X linked (@sindresorhus)
+  ❌  Marked as hireable
+
+  ...
+
+════════════════════════════════════════════════════════════
+  OVERALL SCORECARD
+  ████████████████░░░░ 80/100 (B)
+
+  Verdict: Strong candidate. Prioritize outreach.
+
+  Profile: https://github.com/sindresorhus
+  Email:   sindresorhus@gmail.com
+  Website: https://sindresorhus.com/apps
+  Twitter: @sindresorhus
+════════════════════════════════════════════════════════════
+```
+
+### Grading Scale
+
+| Grade | Score | What it means |
+|---|---|---|
+| A | 85-100 | Exceptional public presence. Strong signal across the board. |
+| B | 65-84 | Solid profile. Worth a conversation. |
+| C | 50-64 | Mixed signals. Dig deeper before reaching out. |
+| D | 35-49 | Thin public profile. May be stronger than GitHub suggests. |
+| F | 0-34 | Limited signal. Consider other sourcing channels. |
+
+---
+
+## The Bookmarklet: For Quick PR Checks
 
 Sometimes you just want to peek at someone's PR history without running a command. Drop this into your bookmarks bar and click it on any GitHub profile:
 
@@ -151,42 +257,15 @@ Shows all PRs: open, closed, and merged. Because closed PRs still tell a story.
 
 ## Finding the Right Repos to Target
 
-The tool is only as useful as the repos you point it at. A few ways to find good ones:
+Both tools are only as useful as the repos you point them at. A few ways to find good ones:
 
 **Ask your hiring team.** During intake, ask: *"Which libraries or tools does your team use or respect?"* Those repos attract exactly the kind of people you're looking for.
 
-**Check strong candidates you've already found.** See which repos they contribute to, then run the tool against those. You'll find their neighbors.
+**Check strong candidates you've already found.** See which repos they contribute to, then run `sourcer.js` against those. You'll find their neighbors.
 
 **Use GitHub topic search.** Try [github.com/topics/nodejs](https://github.com/topics/nodejs), `topic:react`, `topic:web3`, `topic:kubernetes`. Filter by most stars or most forks.
 
 **Follow the dependency trail.** Look at what your product actually depends on, then find who builds and maintains it.
-
----
-
-## Reading a Profile Like a Recruiter
-
-Once you have your list, here's what to actually look at:
-
-**The contribution graph.** Steady green for years beats a massive spike last month. Consistency is a career signal.
-
-**Original repos vs. forks.** Forks only count if they've been meaningfully extended. Anyone can fork a repo and do nothing with it.
-
-**The README.** Seriously, read it. A well-written README is a proxy for how someone communicates. If they can explain their own project clearly, they can probably explain their work in a standup.
-
-**The issues tab.** How someone handles bug reports and feature requests from strangers on the internet is incredibly revealing. Look for patience, clarity, and follow-through.
-
-**Stars received.** Community validation that no resume bullet point can replicate.
-
----
-
-## Finding Contact Info
-
-Beyond what the tool already surfaces:
-
-- **Commit metadata.** Author emails sometimes appear in commit history.
-- **NPM package pages.** Package authors occasionally list contact details.
-- **Cross-platform search.** Try `"username" site:linkedin.com` or `"handle" TypeScript developer`.
-- **Their own website.** If they listed one, start there.
 
 ---
 
@@ -196,7 +275,7 @@ Beyond what the tool already surfaces:
 
 **`403 Forbidden`** You've hit GitHub's rate limit (5,000 requests/hour on authenticated calls). Wait an hour and try again.
 
-**`404 Not Found`** Double-check the repo name. It's case-sensitive. `Expressjs/Express` won't work but `expressjs/express` will.
+**`404 Not Found`** Double-check the username or repo name. Both are case-sensitive.
 
 **NPM package not resolving.** Some packages don't link a GitHub repo in their manifest. Pass the GitHub repo directly instead: `owner/repo`.
 
@@ -206,8 +285,8 @@ Beyond what the tool already surfaces:
 
 ## Related Guides
 
-- [GitHub Recruiting Playbook](../github-recruiting-playbook) - A structured methodology for identifying and evaluating top contributors in high-signal repos
-- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) - Finding crypto-native and technical talent where they actually talk about what they're building
+- [GitHub Sourcing Playbook](https://github.com/gabesparks/github-sourcing-playbook) - The step-by-step methodology that pairs with these tools
+- [Twitter/X Sourcing Playbook](../twitter-x-sourcing-playbook) - Finding technical talent where they talk about what they're building
 
 ---
 
