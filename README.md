@@ -5,7 +5,7 @@
 
 LinkedIn is a highlight reel. GitHub is the game tape.
 
-While everyone else is cold messaging "rockstar developers" on LinkedIn, you could be pulling real contribution data, commit history, and public emails from the platform engineers actually care about. This toolkit gives you two CLI tools that work together: one to find top contributors from any repo or NPM package, and one to deeply evaluate any profile before you reach out.
+This toolkit gives you four CLI tools that work individually or together as a full sourcing pipeline. Find high-signal repos, pull top contributors, deep-evaluate profiles, and generate a ranked outreach shortlist. All from your terminal.
 
 No subscriptions. No browser extensions. No begging an engineer to help you find engineers.
 
@@ -13,54 +13,37 @@ No subscriptions. No browser extensions. No begging an engineer to help you find
 
 ## The Tools
 
-### `sourcer.js` - Find Top Contributors
-Point it at any GitHub repo or NPM package and get a ranked, enriched list of top contributors in about 30 seconds. Bots automatically filtered out.
+| Tool | What it does |
+|---|---|
+| `repofinder.js` | Find high-signal GitHub repos by tech stack |
+| `sourcer.js` | Pull top contributors from any repo or NPM package |
+| `profiler.js` | Deep-evaluate a specific GitHub profile |
+| `recruit.js` | Full pipeline. Runs all three tools in one command. |
 
-```bash
-GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express --top 15 --csv
-```
+### When to use which
 
-### `profiler.js` - Deep Profile Evaluation
-Take a shortlist from `sourcer.js` and run each username through a detailed five-category scorecard: profile completeness, activity, code quality, documentation, and collaboration depth.
+**Use `recruit.js`** when you're starting from scratch and want a ready-to-use outreach shortlist from a single command.
 
-```bash
-GH_TOKEN=ghp_xxxx node profiler.js sindresorhus
-```
-
-### The Workflow
-
-```
-1. Find a high-signal repo (ask your hiring team or use GitHub topics)
-2. Run sourcer.js to pull the top contributors
-3. Review the signal scores and pick your top candidates
-4. Run profiler.js on each one for a full evaluation
-5. Reach out with a personalized message
-```
+**Use the individual tools** when you already know the repo, the username, or just want one piece of the pipeline.
 
 ---
 
 ## Before You Start
 
-You need two things. That's it.
-
-**1. Node.js v18+**
-If you don't have it: [nodejs.org](https://nodejs.org). Download, install, done.
-
-Not sure if you have it? Run this in your terminal:
+**Node.js v18+**
+Download and install from [nodejs.org](https://nodejs.org). Check if you have it:
 ```bash
 node --version
 ```
-If it prints a number, you're good. If it says "command not found", go install it.
 
-**2. A GitHub Personal Access Token**
-This is how both tools authenticate with GitHub's API. It's free, takes 2 minutes, and one token works for everything.
+**A GitHub Personal Access Token**
+One token works for all four tools.
 
 1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)
 2. Click **Generate new token > Generate new token (classic)**
-3. Give it a name like `sourcing-toolkit`
-4. Leave all permission boxes unchecked. We only read public data.
-5. Scroll down and click **Generate token**
-6. **Copy it immediately.** GitHub will never show it again. Yes, really.
+3. Name it `sourcing-toolkit`
+4. Leave all permissions unchecked. We only read public data.
+5. Click **Generate token** and copy it immediately. GitHub won't show it again.
 
 ---
 
@@ -71,166 +54,210 @@ This is how both tools authenticate with GitHub's API. It's free, takes 2 minute
 git clone https://github.com/gabesparks/github-npm-sourcing-guide.git
 cd github-npm-sourcing-guide
 
-# No npm install needed. Both tools have zero external dependencies.
-# (We know, we're just as surprised as you are.)
+# No npm install needed. All four tools have zero external dependencies.
 ```
 
 ---
 
-## sourcer.js
+## recruit.js: Full Pipeline
+
+The flagship tool. Give it a tech stack and it finds repos, pulls contributors, evaluates profiles, and outputs a ranked shortlist ready for outreach.
 
 ### Usage
 
 ```bash
-GH_TOKEN=<your_token> node sourcer.js <owner/repo or npm-package> [--top N] [--csv]
+GH_TOKEN=<token> node recruit.js --stack <tech,tech> [options]
 ```
+
+### Options
+
+| Flag | Default | Description |
+|---|---|---|
+| `--stack` | required | Tech stack to search. e.g. `react,nodejs,typescript` |
+| `--top-repos` | 3 | Number of repos to source from |
+| `--top-contributors` | 10 | Contributors to pull per repo |
+| `--min-stars` | 500 | Minimum stars for target repos |
+| `--skip-profile` | off | Skip deep profile evaluation for speed |
+| `--csv` | off | Export results to a CSV file |
 
 ### Examples
 
 ```bash
-# Top 10 contributors to a GitHub repo (default)
-GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
+# Standard run - finds repos, pulls contributors, evaluates profiles
+GH_TOKEN=ghp_xxxx node recruit.js --stack react,nodejs
 
-# Top 25 contributors
-GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 25
+# Wider net - 5 repos, 15 contributors each
+GH_TOKEN=ghp_xxxx node recruit.js --stack typescript,react --top-repos 5 --top-contributors 15
 
-# NPM package - auto-resolves to its GitHub repo
-GH_TOKEN=ghp_xxxx node sourcer.js lodash
+# Web3 / crypto hiring
+GH_TOKEN=ghp_xxxx node recruit.js --stack solidity,ethereum,web3 --top-repos 3
 
-# Scoped NPM package
-GH_TOKEN=ghp_xxxx node sourcer.js @remix-run/router
+# Fast mode - skips deep profiling, just sourcer signals
+GH_TOKEN=ghp_xxxx node recruit.js --stack python,django --skip-profile
 
-# Export to CSV - opens in Excel or Google Sheets
-GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express --csv
-
-# The whole shebang
-GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --top 20 --csv
+# Export to CSV for your ATS
+GH_TOKEN=ghp_xxxx node recruit.js --stack nodejs,typescript --csv
 ```
 
 ### Sample Output
 
 ```
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-#    Username             Name                   PRs    Follow   Repos  Age      Location           Email                      Score
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-1    jsmith-dev           Jane Smith             3881   51671    296    17.6y    —                  —                          75
-2    mikecoder99          Mike Tran              1232   3734     31     17.1y    —                  mike@example.com           85
-3    a_builds             Alex Rivera             84    2391     60     15.2y    Austin, TX         alex@example.com           73
-4    devcarlos            Carlos Mendes           70    987      308    17.0y    —                  —                          42
-──────────────────────────────────────────────────────────────────────────────────────────────────────
+====================================================================================================
+  OUTREACH SHORTLIST
+  Stack: react, nodejs  |  Sourced from: freeCodeCamp/freeCodeCamp, vercel/next.js
+====================================================================================================
+
+#    Username             Name                 Score    Grade   Email                       Repos  Links
+----------------------------------------------------------------------------------------------------
+1    ijjk                 JJ Kasper            87/100   A       jj@jjsweb.site              1      jjsweb.site | @_ijjk
+2    raisedadead          Mrugesh Mohapatra    80/100   B                                   1      mrugesh.dev | @raisedadead
+3    huozhi               Jiachi Liu           76/100   B                                   1      huozhi.im | @huozhi
+----------------------------------------------------------------------------------------------------
+
+  TOP PICKS
+
+  1. @ijjk (JJ Kasper) — 87/100 (A)
+     Email:    jj@jjsweb.site
+     Website:  https://jjsweb.site
+     Twitter:  @_ijjk
+     Location: San Francisco, CA
+     Profile:  https://github.com/ijjk
+     Active in: vercel/next.js
 ```
 
-Fake names, real format. Bots are automatically filtered out. *(Sorry, dependabot. It's not you, it's us.)*
+### How the Combined Score Works
 
-The `--csv` flag saves a `contributors-<repo>.csv` file in your current folder. Great for dropping into your ATS or sharing with a hiring manager.
+Each candidate is scored across three dimensions:
 
-### How the Signal Score Works
-
-Every contributor gets a score from 0 to 100. It's a prioritization tool, not a judgment.
-
-| Signal | Points | Why it matters |
+| Component | Weight | Source |
 |---|---|---|
-| Contributions to this repo | up to 40 | Active in *this* codebase, not just GitHub in general |
-| Followers | up to 20 | Community recognition. Peers vote with follows. |
-| Public repos | up to 15 | Breadth of work beyond their day job |
-| Public email listed | 10 | Low-hanging fruit. Skip the guessing game. |
-| Marked as hireable | 10 | They literally said they're open. Don't overthink it. |
-| Website linked | 5 | Presence beyond GitHub |
-| Twitter/X linked | 5 | Active in the community conversation |
-
-High score = reach out first. Low score = still worth a look, just lower on the list.
+| Sourcer signals | 40% | Contributions, followers, repos, public email, hireable status |
+| Profile evaluation | 50% | Activity, code quality, documentation, collaboration depth |
+| Cross-repo bonus | up to +15pts | Appearing in multiple target repos is a strong signal |
 
 ---
 
-## profiler.js
+## repofinder.js: Find Target Repos
+
+Finds high-signal GitHub repositories by tech stack. Use this when you need to identify which repos to target before running `sourcer.js`.
 
 ### Usage
 
 ```bash
-GH_TOKEN=<your_token> node profiler.js <github-username> [--json]
+GH_TOKEN=<token> node repofinder.js --stack <tech,tech> [--top N] [--min-stars N] [--csv]
 ```
 
 ### Examples
 
 ```bash
-# Full recruiter scorecard
+# Find top 10 repos for a React/Node stack
+GH_TOKEN=ghp_xxxx node repofinder.js --stack react,nodejs
+
+# Web3 repos with higher bar
+GH_TOKEN=ghp_xxxx node repofinder.js --stack solidity,ethereum --min-stars 1000
+
+# Export to CSV
+GH_TOKEN=ghp_xxxx node repofinder.js --stack python,ml --top 15 --csv
+```
+
+### Supported Stack Terms
+
+JavaScript: `javascript` `typescript` `nodejs` `react` `vue` `svelte` `nextjs` `express` `redux`
+
+Python: `python` `django` `fastapi` `flask`
+
+Systems: `go` `rust` `java` `kotlin` `swift`
+
+Web3: `web3` `ethereum` `solidity` `solana` `bitcoin` `defi`
+
+Infrastructure: `kubernetes` `docker` `terraform` `aws`
+
+ML/AI: `ml` `ai` `pytorch` `tensorflow`
+
+---
+
+## sourcer.js: Pull Contributors
+
+Point it at any GitHub repo or NPM package and get a ranked, enriched list of top contributors. Bots automatically filtered out.
+
+### Usage
+
+```bash
+GH_TOKEN=<token> node sourcer.js <owner/repo or npm-package> [--top N] [--csv]
+```
+
+### Examples
+
+```bash
+# Top 10 contributors to a repo
+GH_TOKEN=ghp_xxxx node sourcer.js expressjs/express
+
+# NPM package - auto-resolves to its GitHub repo
+GH_TOKEN=ghp_xxxx node sourcer.js lodash --top 20
+
+# Export to CSV
+GH_TOKEN=ghp_xxxx node sourcer.js vercel/next.js --csv
+```
+
+### How the Signal Score Works
+
+| Signal | Points | Why it matters |
+|---|---|---|
+| Contributions to this repo | up to 40 | Active in this codebase specifically |
+| Followers | up to 20 | Community recognition |
+| Public repos | up to 15 | Breadth of work |
+| Public email listed | 10 | Easy to reach |
+| Marked as hireable | 10 | They said they're open |
+| Website linked | 5 | Professional presence |
+| Twitter/X linked | 5 | Active in the community |
+
+---
+
+## profiler.js: Deep Profile Evaluation
+
+Takes a GitHub username and returns a detailed five-category scorecard. Use this to evaluate specific candidates before reaching out.
+
+### Usage
+
+```bash
+GH_TOKEN=<token> node profiler.js <username> [--json]
+```
+
+### Examples
+
+```bash
+# Full scorecard
 GH_TOKEN=ghp_xxxx node profiler.js sindresorhus
 
-# Raw JSON output (useful for piping into other tools)
+# JSON output for piping into other tools
 GH_TOKEN=ghp_xxxx node profiler.js sindresorhus --json
 ```
 
 ### What It Evaluates
 
-`profiler.js` scores each profile across five categories:
-
-**Profile Completeness (up to 100pts)**
-Real name, photo, bio, location, public email, website, Twitter, hireable status. Tells you how easy this person is to contact and verify.
-
-**Activity and Consistency (up to 100pts)**
-Account age, public repo count, followers, days since last active, and variety of activity types. Consistent activity over years beats a recent burst every time.
-
-**Code Quality Signals (up to 100pts)**
-Total stars on original repos, language diversity, repo descriptions, topic tags, original vs. fork ratio, and recent maintenance. Tells you if they're building real things or just collecting forks.
-
-**README and Documentation (up to 100pts)**
-Evaluates top repos for descriptions, topics, homepage links, and community reception. A well-documented repo signals communication skills as much as technical ability.
-
-**Collaboration Depth (up to 100pts)**
-PR reviews, pull requests submitted, issue participation, contributions to external repos, and community standing. Shows whether they work well with others, not just alone.
-
-### Sample Output
-
-```
-════════════════════════════════════════════════════════════
-  GitHub Profile Report: @sindresorhus
-  Sindre Sorhus
-  "Full-Time Open-Sourcerer. Focused on Swift and JavaScript."
-════════════════════════════════════════════════════════════
-
-  Profile Completeness
-  ████████████████░░░░ 80/100 (B)
-  Well-rounded profile. Easy to contact and verify.
-
-  ✅  Real name listed
-  ✅  Custom profile photo
-  ✅  Bio filled in
-  ❌  Location listed
-  ✅  Public email listed (sindresorhus@gmail.com)
-  ✅  Website or portfolio linked (https://sindresorhus.com/apps)
-  ✅  Twitter/X linked (@sindresorhus)
-  ❌  Marked as hireable
-
-  ...
-
-════════════════════════════════════════════════════════════
-  OVERALL SCORECARD
-  ████████████████░░░░ 80/100 (B)
-
-  Verdict: Strong candidate. Prioritize outreach.
-
-  Profile: https://github.com/sindresorhus
-  Email:   sindresorhus@gmail.com
-  Website: https://sindresorhus.com/apps
-  Twitter: @sindresorhus
-════════════════════════════════════════════════════════════
-```
+| Category | What it looks at |
+|---|---|
+| Profile Completeness | Name, photo, bio, location, email, website, Twitter, hireable |
+| Activity and Consistency | Account age, repo count, followers, last active, activity variety |
+| Code Quality Signals | Stars received, language diversity, original vs. forks, recent maintenance |
+| README and Documentation | Repo descriptions, topics, homepage links, community reception |
+| Collaboration Depth | PR reviews, pull requests, issue participation, external contributions |
 
 ### Grading Scale
 
-| Grade | Score | What it means |
+| Grade | Score | Meaning |
 |---|---|---|
-| A | 85-100 | Exceptional public presence. Strong signal across the board. |
-| B | 65-84 | Solid profile. Worth a conversation. |
-| C | 50-64 | Mixed signals. Dig deeper before reaching out. |
+| A | 85-100 | Exceptional. Strong signal across the board. |
+| B | 65-84 | Solid. Worth a conversation. |
+| C | 50-64 | Mixed signals. Dig deeper first. |
 | D | 35-49 | Thin public profile. May be stronger than GitHub suggests. |
-| F | 0-34 | Limited signal. Consider other sourcing channels. |
+| F | 0-34 | Limited signal. Try other sourcing channels. |
 
 ---
 
-## The Bookmarklet: For Quick PR Checks
+## The Bookmarklet: Quick PR History
 
-Sometimes you just want to peek at someone's PR history without running a command. Drop this into your bookmarks bar and click it on any GitHub profile:
+Drop this into your bookmarks bar and click it on any GitHub profile to instantly see their full PR history:
 
 ```javascript
 javascript:(function() {
@@ -245,27 +272,21 @@ javascript:(function() {
 })();
 ```
 
-**To install:**
-1. Right-click your bookmarks bar and select **Add bookmark**
-2. Name it something like `Their PRs`
-3. Paste the script above as the URL
-4. Go to any GitHub profile and click it
-
-Shows all PRs: open, closed, and merged. Because closed PRs still tell a story.
+**To install:** Right-click your bookmarks bar, add a new bookmark, paste the script as the URL.
 
 ---
 
-## Finding the Right Repos to Target
+## Finding the Right Repos
 
-Both tools are only as useful as the repos you point them at. A few ways to find good ones:
+Both `repofinder.js` and `recruit.js` automate this, but good inputs make better outputs:
 
-**Ask your hiring team.** During intake, ask: *"Which libraries or tools does your team use or respect?"* Those repos attract exactly the kind of people you're looking for.
+**Ask your hiring team.** During intake: "Which libraries or tools does your team use or respect?" Those repos attract exactly the people you want.
 
-**Check strong candidates you've already found.** See which repos they contribute to, then run `sourcer.js` against those. You'll find their neighbors.
+**Check strong candidates you already have.** Which repos do they contribute to? Run the tools against those.
 
-**Use GitHub topic search.** Try [github.com/topics/nodejs](https://github.com/topics/nodejs), `topic:react`, `topic:web3`, `topic:kubernetes`. Filter by most stars or most forks.
+**Use GitHub topic search.** [github.com/topics](https://github.com/topics) filtered by most stars or most forks.
 
-**Follow the dependency trail.** Look at what your product actually depends on, then find who builds and maintains it.
+**Follow the dependency trail.** Find out what your product depends on, then find who builds it.
 
 ---
 
@@ -273,13 +294,15 @@ Both tools are only as useful as the repos you point them at. A few ways to find
 
 **`401 Unauthorized`** Your token is wrong or expired. Generate a new one.
 
-**`403 Forbidden`** You've hit GitHub's rate limit (5,000 requests/hour on authenticated calls). Wait an hour and try again.
+**`403 Forbidden`** Rate limited. GitHub allows 5,000 requests/hour on authenticated calls. Wait and try again.
 
-**`404 Not Found`** Double-check the username or repo name. Both are case-sensitive.
+**`404 Not Found`** Check the repo name or username. Both are case-sensitive.
 
-**NPM package not resolving.** Some packages don't link a GitHub repo in their manifest. Pass the GitHub repo directly instead: `owner/repo`.
+**NPM package not resolving.** Pass the GitHub repo directly instead: `owner/repo`.
 
-**Output looks misaligned.** The table is formatted for a standard terminal width. Try making your terminal window wider.
+**No repos found.** Try lowering `--min-stars` or simplifying your `--stack` terms.
+
+**Output looks misaligned.** The tables are formatted for a standard terminal width. Try making your terminal window wider.
 
 ---
 
