@@ -1,5 +1,5 @@
 # GitHub & NPM Sourcing Guide
-### Find engineers where they actually hang out - not where they pretend to.
+### Find engineers where they actually hang out — not where they pretend to.
 
 ---
 
@@ -23,14 +23,14 @@ That's it. One command and you get this:
 ──────────────────────────────────────────────────────────────────────────────────────────────────────
 #    Username             Name                   PRs    Follow   Repos  Age      Location           Email                      Score
 ──────────────────────────────────────────────────────────────────────────────────────────────────────
-1    tjholowaychuk        TJ Holowaychuk         3881   51671    296    17.6y    —                  —                          75
-2    dougwilson           Douglas Wilson         1232   3734     31     17.1y    —                  doug@somethingdoug.com     85
-3    jonathanong          jongleberry             84    2391     60     15.2y    Orange County, CA  me@jongleberry.com         73
-4    defunctzombie        Roman Shtylman          70    987      308    17.0y    —                  —                          42
+1    jsmith-dev           Jane Smith             3881   51671    296    17.6y    —                  —                          75
+2    mikecoder99          Mike Tran              1232   3734     31     17.1y    —                  mike@example.com           85
+3    a_builds             Alex Rivera             84    2391     60     15.2y    Austin, TX         alex@example.com           73
+4    devcarlos            Carlos Mendes           70    987      308    17.0y    —                  —                          42
 ──────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-Real people. Real signals. Bots automatically filtered out. *(Sorry, dependabot. It's not you, it's us.)*
+Fake names, real format. When you run it against an actual repo, you'll see real contributor data. Bots automatically filtered out. *(Sorry, dependabot. It's not you, it's us.)*
 
 ---
 
