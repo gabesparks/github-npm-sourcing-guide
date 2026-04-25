@@ -2,7 +2,7 @@
 
 /**
  * sourcer.js
- * 
+ *
  * A CLI tool for technical recruiters to surface and evaluate top contributors
  * from any public GitHub repository or NPM package.
  *
@@ -10,7 +10,7 @@
  *   node sourcer.js <github-owner/repo>           # e.g. node sourcer.js expressjs/express
  *   node sourcer.js <npm-package-name>            # e.g. node sourcer.js lodash
  *   node sourcer.js <repo> --top 20               # show top 20 contributors (default: 10)
- *   node sourcer.js <repo> --csv                  # also export results to contributors.csv
+ *   node sourcer.js <repo> --csv                  # also export results to a .csv file
  *
  * Requirements:
  *   - Node.js v18+
@@ -43,9 +43,23 @@ const input = args[0];
 const topN = parseInt(args[args.indexOf('--top') + 1]) || 10;
 const exportCsv = args.includes('--csv');
 
+// ─── Bot Detection ─────────────────────────────────────────────────────────────
+
+function isBot(contributor) {
+  const login = contributor.login.toLowerCase();
+  return (
+    contributor.type === 'Bot' ||
+    login.includes('[bot]') ||
+    login.endsWith('-bot') ||
+    login.endsWith('_bot') ||
+    login === 'dependabot' ||
+    login === 'renovate'
+  );
+}
+
 // ─── HTTP Helper ───────────────────────────────────────────────────────────────
 
-function get(url, headers = {}) {
+function get(url) {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
     const options = {
@@ -56,7 +70,6 @@ function get(url, headers = {}) {
         'Authorization': `Bearer ${GH_TOKEN}`,
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
-        ...headers,
       },
     };
 
@@ -91,10 +104,6 @@ async function resolveNpmToGithub(packageName) {
     throw new Error(`Could not find a GitHub repo linked in the NPM package "${packageName}". Try passing the GitHub repo directly (e.g. owner/repo).`);
   }
 
-  // Extract owner/repo from various URL formats:
-  // git+https://github.com/owner/repo.git
-  // git://github.com/owner/repo.git
-  // https://github.com/owner/repo
   const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/.]+)/);
   if (!match) {
     throw new Error(`Repo URL found (${repoUrl}) but couldn't extract a GitHub owner/repo from it.`);
@@ -108,8 +117,7 @@ async function resolveNpmToGithub(packageName) {
 // ─── GitHub API Calls ─────────────────────────────────────────────────────────
 
 async function getContributors(repo, count) {
-  // GitHub returns max 100 per page; we may need multiple pages
-  const perPage = Math.min(count, 100);
+  const perPage = Math.min(count + 5, 100); // fetch a few extra to account for bots
   const data = await get(
     `https://api.github.com/repos/${repo}/contributors?per_page=${perPage}&anon=false`
   );
@@ -118,7 +126,7 @@ async function getContributors(repo, count) {
     throw new Error(`Unexpected response fetching contributors. Check that "${repo}" is a public repo.`);
   }
 
-  return data.slice(0, count);
+  return data;
 }
 
 async function getUserProfile(username) {
@@ -135,8 +143,6 @@ function accountAgeYears(createdAt) {
 }
 
 function score(profile, contributions) {
-  // Weighted signal score to help prioritize outreach
-  // Higher = stronger candidate signal (not a quality judgment, just activity signal)
   let s = 0;
   s += Math.min(contributions / 10, 40);        // up to 40pts for contributions
   s += Math.min(profile.followers / 5, 20);     // up to 20pts for followers
@@ -209,7 +215,11 @@ function printTable(results) {
 
 function exportToCsv(results, repo) {
   const filename = `contributors-${repo.replace('/', '-')}.csv`;
-  const headers = ['Rank', 'Username', 'Name', 'Contributions', 'Followers', 'Public Repos', 'Account Age', 'Location', 'Email', 'Website', 'Twitter', 'Hireable', 'Score', 'GitHub URL'];
+  const headers = [
+    'Rank', 'Username', 'Name', 'Contributions', 'Followers',
+    'Public Repos', 'Account Age', 'Location', 'Email',
+    'Website', 'Twitter', 'Hireable', 'Score', 'GitHub URL'
+  ];
   const rows = results.map(r => [
     r.rank,
     r.username,
@@ -256,13 +266,21 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`  ✅  Found ${contributors.length} contributors. Enriching profiles...\n`);
+  // Filter out bots
+  const humans = contributors.filter(c => !isBot(c));
+  const botsSkipped = contributors.length - humans.length;
+  const skipNote = botsSkipped > 0 ? ` (${botsSkipped} bot${botsSkipped > 1 ? 's' : ''} skipped)` : '';
+
+  // Take only the top N after filtering
+  const topHumans = humans.slice(0, topN);
+
+  console.log(`  ✅  Found ${topHumans.length} human contributors${skipNote}. Enriching profiles...\n`);
 
   const results = [];
 
-  for (let i = 0; i < contributors.length; i++) {
-    const c = contributors[i];
-    process.stdout.write(`  Loading ${i + 1}/${contributors.length}: ${c.login}...    \r`);
+  for (let i = 0; i < topHumans.length; i++) {
+    const c = topHumans[i];
+    process.stdout.write(`  Loading ${i + 1}/${topHumans.length}: ${c.login}...    \r`);
 
     let profile = {};
     try {
@@ -287,7 +305,7 @@ async function main() {
       score: score(profile, c.contributions),
     });
 
-    // Respect GitHub's rate limit — 5000 requests/hr authenticated, but be polite
+    // Be polite to GitHub's API
     await new Promise(r => setTimeout(r, 150));
   }
 
